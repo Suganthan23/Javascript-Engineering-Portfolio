@@ -1,55 +1,83 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Morse Code Encoder/Decoder</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morse Translator</title>
     <link rel="stylesheet" href="../ui.css">
-    <link rel="stylesheet" href="./style.css">
+    <style>
+        .output-card {
+            background: color-mix(in srgb, var(--accent) 8%, var(--card));
+            border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .morse-text {
+            font-family: monospace;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            word-break: break-all;
+        }
+
+        .playing {
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent);
+            border-color: var(--accent);
+        }
+    </style>
 </head>
 
 <body>
-    <div class="container">
+
+    <div class="container" style="max-width: 700px;">
         <div class="app">
             <div class="header">
                 <div>
-                    <h1 class="h1">Morse Code Encoder/Decoder</h1>
-                    <p class="sub">Encode text to Morse and decode Morse back to text. Use “/” between words.</p>
+                    <h1 class="h1">Morse Transmitter</h1>
+                    <p class="sub">Text to Audio translation</p>
                 </div>
-                <div class="row">
-                    <select id="mode" aria-label="Mode">
-                        <option value="encode">Encode</option>
-                        <option value="decode">Decode</option>
-                    </select>
-                    <button class="btn" id="swap">Swap</button>
-                    <button class="btn" id="clear">Clear</button>
-                </div>
+                <div class="badge">v2.0</div>
             </div>
 
-            <div class="grid">
-                <div class="card">
-                    <label for="input">Input</label>
-                    <textarea id="input" placeholder="Type here..."></textarea>
-                    <div class="row" style="margin-top:10px;">
-                        <button class="btn primary" id="run">Convert</button>
-                        <button class="btn" id="copyOut">Copy Output</button>
-                    </div>
-                    <p class="small" id="hint" style="margin:10px 0 0;"></p>
+            <div class="grid" style="grid-template-columns: 1fr; gap: 20px;">
+
+                <div>
+                    <label for="input">Type your message</label>
+                    <textarea id="input" placeholder="e.g. SOS or Hello World" rows="3"></textarea>
                 </div>
 
-                <div class="card">
-                    <label for="output">Output</label>
-                    <textarea id="output" placeholder="Result..." readonly></textarea>
-                    <p class="small" style="margin:10px 0 0;">
-                        Tip: In Morse, letters are separated by spaces. Words by <code>/</code>.
-                    </p>
+                <div class="row" style="justify-content: center;">
+                    <button id="btn-translate" class="btn primary">Translate</button>
+                    <button id="btn-play" class="btn" disabled>▶ Play Audio</button>
+                    <button id="btn-stop" class="btn danger" disabled>■ Stop</button>
                 </div>
+
+                <div class="card output-card" id="output-card">
+                    <div id="output" class="morse-text">... --- ...</div>
+                </div>
+
+                <div style="text-align: center;">
+                    <button id="btn-toggle-dict" class="btn small"
+                        style="background:transparent; border:none; text-decoration:underline;">Show Dictionary</button>
+                </div>
+
+                <div id="dictionary" class="card" style="display:none; margin-top:10px;">
+                    <div class="kpi" id="dict-grid"
+                        style="grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); font-family: monospace;">
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
-    <script src="./script.js" defer></script>
+    <script src="script.js"></script>
 </body>
 
 </html>

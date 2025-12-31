@@ -1,89 +1,179 @@
-const MORSE = {
-    A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".",
-    F: "..-.", G: "--.", H: "....", I: "..", J: ".---",
-    K: "-.-", L: ".-..", M: "--", N: "-.", O: "---",
-    P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-",
-    U: "..-", V: "...-", W: ".--", X: "-..-", Y: "-.--",
-    Z: "--..",
-    "0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-",
-    "5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.",
-    ".": ".-.-.-", ",": "--..--", "?": "..--..", "'": ".----.", "!": "-.-.--",
-    "/": "-..-.", "(": "-.--.", ")": "-.--.-", "&": ".-...", ":": "---...",
-    ";": "-.-.-.", "=": "-...-", "+": ".-.-.", "-": "-....-", "_": "..--.-",
-    "\"": ".-..-.", "$": "...-..-", "@": ".--.-."
+const MorseLib = {
+    DICT: {
+        A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".",
+        F: "..-.", G: "--.", H: "....", I: "..", J: ".---",
+        K: "-.-", L: ".-..", M: "--", N: "-.", O: "---",
+        P: ".--.", Q: "--.-", R: ".-.", S: "...", T: "-",
+        U: "..-", V: "...-", W: ".--", X: "-..-", Y: "-.--",
+        Z: "--..",
+        "0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-",
+        "5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.",
+        ".": ".-.-.-", ",": "--..--", "?": "..--..", "'": ".----.", "!": "-.-.--",
+        "/": "-..-.", "(": "-.--.", ")": "-.--.-", "&": ".-...", ":": "---...",
+        ";": "-.-.-.", "=": "-...-", "+": ".-.-.", "-": "-....-", "_": "..--.-",
+        "\"": ".-..-.", "$": "...-..-", "@": ".--.-."
+    },
+
+    get REVERSE() {
+        return Object.fromEntries(Object.entries(this.DICT).map(([k, v]) => [v, k]));
+    },
+
+    encode: (text) => {
+        if (!text) return "";
+        return text.trim().split(/\s+/).map(word => {
+            return word.toUpperCase().split("").map(ch => MorseLib.DICT[ch] || "?").join(" ");
+        }).join(" / ");
+    },
+
+    decode: (morse) => {
+        const clean = morse.trim().replace(/\s*\/\s*/g, " / ");
+        return clean.split(" / ").map(word => {
+            return word.split(" ").map(code => MorseLib.REVERSE[code] || "?").join("");
+        }).join(" ");
+    }
 };
 
-const REVERSE = Object.fromEntries(Object.entries(MORSE).map(([k, v]) => [v, k]));
+const AudioEngine = {
+    ctx: null,
+    oscillator: null,
+    isPlaying: false,
+    DOT_MS: 80,
 
-const $ = (id) => document.getElementById(id);
-const modeEl = $("mode");
-const inputEl = $("input");
-const outputEl = $("output");
-const hintEl = $("hint");
+    init() {
+        if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    },
 
-function encodeText(text) {
-    const words = text.trim().split(/\s+/).filter(Boolean);
-    const encodedWords = words.map(w => {
-        return w.toUpperCase().split("").map(ch => MORSE[ch] ?? "?").join(" ");
-    });
-    return encodedWords.join(" / ");
-}
+    wait: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
 
-function decodeMorse(morse) {
-    const normalized = morse.trim().replace(/\s*\/\s*/g, " / ");
-    const words = normalized.split(" / ").filter(Boolean);
+    playTone: async function (duration) {
+        if (!this.isPlaying) return;
 
-    const decodedWords = words.map(word => {
-        const letters = word.trim().split(/\s+/).filter(Boolean);
-        return letters.map(code => REVERSE[code] ?? "?").join("");
-    });
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
 
-    return decodedWords.join(" ");
-}
+        osc.type = "sine";
+        osc.frequency.value = 600;
+        osc.connect(gain);
 
-function convert() {
-    const mode = modeEl.value;
-    const s = inputEl.value;
+        gain.connect(this.ctx.destination);
 
-    if (!s.trim()) {
-        outputEl.value = "";
-        hintEl.textContent = "";
-        return;
+        osc.start();
+
+        gain.gain.setValueAtTime(1, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + (duration / 1000));
+
+        await this.wait(duration);
+        osc.stop();
+    },
+
+    async playSequence(morseString, onComplete) {
+        this.init();
+        if (this.ctx.state === 'suspended') await this.ctx.resume();
+
+        this.isPlaying = true;
+        const symbols = morseString.split("");
+
+        for (let char of symbols) {
+            if (!this.isPlaying) break;
+
+            if (char === ".") {
+                await this.playTone(this.DOT_MS);
+                await this.wait(this.DOT_MS); 
+            }
+            else if (char === "-") {
+                await this.playTone(this.DOT_MS * 3);
+                await this.wait(this.DOT_MS); 
+            }
+            else if (char === " " || char === "/") {
+                await this.wait(this.DOT_MS * 3); 
+            }
+        }
+
+        this.isPlaying = false;
+        if (onComplete) onComplete();
+    },
+
+    stop() {
+        this.isPlaying = false;
     }
+};
 
-    if (mode === "encode") {
-        outputEl.value = encodeText(s);
-        hintEl.textContent = "Encoding: spaces become “/” between words.";
-    } else {
-        outputEl.value = decodeMorse(s);
-        hintEl.textContent = "Decoding: use spaces between letters and “/” between words.";
+const App = {
+    els: {
+        input: document.getElementById("input"),
+        output: document.getElementById("output"),
+        outputCard: document.getElementById("output-card"),
+        btnTranslate: document.getElementById("btn-translate"),
+        btnPlay: document.getElementById("btn-play"),
+        btnStop: document.getElementById("btn-stop"),
+        btnDict: document.getElementById("btn-toggle-dict"),
+        dictGrid: document.getElementById("dict-grid"),
+        dictPanel: document.getElementById("dictionary")
+    },
+
+    state: {
+        currentMorse: ""
+    },
+
+    populateDictionary() {
+        Object.entries(MorseLib.DICT).forEach(([char, code]) => {
+            const div = document.createElement("div");
+            div.className = "item";
+            div.style.textAlign = "center";
+            div.innerHTML = `<strong>${char}</strong><br><span style="color:var(--accent); font-size:12px">${code}</span>`;
+            App.els.dictGrid.appendChild(div);
+        });
+    },
+
+    handleTranslate() {
+        const text = App.els.input.value;
+        const result = MorseLib.encode(text);
+
+        App.state.currentMorse = result;
+        App.els.output.textContent = result || "... --- ...";
+        App.els.btnPlay.disabled = !result;
+    },
+
+    handlePlay() {
+        if (!App.state.currentMorse) return;
+
+        App.els.outputCard.classList.add("playing");
+        App.els.btnPlay.disabled = true;
+        App.els.btnStop.disabled = false;
+
+        AudioEngine.playSequence(App.state.currentMorse, () => {
+            App.els.outputCard.classList.remove("playing");
+            App.els.btnPlay.disabled = false;
+            App.els.btnStop.disabled = true;
+        });
+    },
+
+    handleStop() {
+        AudioEngine.stop();
+        App.els.outputCard.classList.remove("playing");
+        App.els.btnPlay.disabled = false;
+        App.els.btnStop.disabled = true;
+    },
+
+    init() {
+        this.populateDictionary();
+        this.els.btnTranslate.addEventListener("click", this.handleTranslate);
+        this.els.input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                this.handleTranslate();
+            }
+        });
+        this.els.btnPlay.addEventListener("click", this.handlePlay);
+        this.els.btnStop.addEventListener("click", this.handleStop);
+        this.els.btnDict.addEventListener("click", () => {
+            const isHidden = this.els.dictPanel.style.display === "none";
+            this.els.dictPanel.style.display = isHidden ? "block" : "none";
+            this.els.btnDict.textContent = isHidden ? "Hide Dictionary" : "Show Dictionary";
+        });
     }
-}
+};
 
-$("run").addEventListener("click", convert);
-inputEl.addEventListener("input", convert);
-
-$("swap").addEventListener("click", () => {
-    const a = inputEl.value;
-    inputEl.value = outputEl.value;
-    outputEl.value = a;
-    modeEl.value = (modeEl.value === "encode") ? "decode" : "encode";
-    convert();
-});
-
-$("clear").addEventListener("click", () => {
-    inputEl.value = "";
-    outputEl.value = "";
-    hintEl.textContent = "";
-    inputEl.focus();
-});
-
-$("copyOut").addEventListener("click", async () => {
-    try {
-        await navigator.clipboard.writeText(outputEl.value);
-    } catch {
-        // fallback
-        outputEl.select();
-        document.execCommand("copy");
-    }
-});
+App.init();

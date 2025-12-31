@@ -1,42 +1,28 @@
-const readline = require("readline").createInterface({
-    input: process.stdin,
-    output: process.stdout,
-});
+const employees = [
+  { id: 1, name: "Alice", department: "IT", salary: 50000, years: 5 },
+  { id: 2, name: "Bob", department: "HR", salary: 45000, years: 2 },
+  { id: 3, name: "Charlie", department: "IT", salary: 75000, years: 10 },
+  { id: 4, name: "David", department: "Marketing", salary: 55000, years: 4 },
+  { id: 5, name: "Eve", department: "IT", salary: 80000, years: 7 },
+  { id: 6, name: "Frank", department: "HR", salary: 60000, years: 3 }
+];
 
-function parseNumbers(p){
-    const pnum = String(p).trim().split(/[\s,]+/).filter(Boolean);
-    if (pnum.length === 0) return null;
-    const numbers = pnum.map(Number);
-    if (numbers.some(n => !Number.isFinite(n))) return null;
-    return numbers;
-}
+const veterans = employees.filter(e => e.years > 4);
 
-const mapDouble = number => number.map(n => n * 2);
-const filterEven = number => number.filter(n => n % 2 === 0);
-const sum = number => number.reduce((acc, n) => acc + n, 0);
+const itSalary = employees.filter(t => {
+    if(t.department === "IT") return t;
+})
 
-function start() {
-    readline.question("Enter a list of numbers separated by spaces or commas: ", (input) => {
-        const numbers = parseNumbers(input);
-        if (!numbers) {
-            console.log("Please enter a valid list of numbers.\n");
-            return start();
-        } 
-        console.log("Original list :", numbers.join(""));
-        console.log("Map(double) :", mapDouble(numbers).join(""));
-        console.log("Filter(even) :", filterEven(numbers).join(""));
-        console.log("Reduce(sum) :", sum(numbers));
-        console.log("");
+const totalItSalary = itSalary.reduce((acc, curr) => {
+    return acc + curr.salary;
+},0);
 
-        readline.question("Try another list? (y/n): ", (ans) => {
-            if (String(ans).trim().toLowerCase() === "y") {
-                console.log("");
-                start();
-            } else {
-                readline.close();
-            }
-        });
-    });
-}
+const groupedByDept = employees.reduce((acc, curr) => {
+    if(!acc[curr.department]) acc[curr.department] = [];
+    acc[curr.department].push(curr);
+    return acc;
+}, {});
 
-start();
+console.log(veterans);
+console.log(totalItSalary);
+console.log(groupedByDept);

@@ -1,183 +1,263 @@
-const KEY = "library.v1";
-const $ = (id) => document.getElementById(id);
-const uid = () => crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2);
-
-function load() {
-    try {
-        return JSON.parse(localStorage.getItem(KEY)) ?? { books: [], members: [], loans: [] };
-    } catch {
-        return { books: [], members: [], loans: [] };
+class Book {
+    constructor(title, author, copies, isbn) {
+        this.id = crypto.randomUUID();
+        this.title = title;
+        this.author = author;
+        this.isbn = isbn || "N/A";
+        this.total = parseInt(copies);
+        this.borrowed = 0; 
     }
 }
-function save(state) { localStorage.setItem(KEY, JSON.stringify(state)); }
 
-let state = load();
-
-function msg(el, text, isErr) {
-    el.textContent = text;
-    el.style.color = isErr ? "var(--bad)" : "var(--muted)";
+class Member {
+    constructor(name, email) {
+        this.id = crypto.randomUUID();
+        this.name = name;
+        this.email = email || "N/A";
+        this.joined = new Date().toISOString();
+    }
 }
 
-function switchTab(tab) {
-    ["books", "members", "loans"].forEach(id => $(id).style.display = (id === tab) ? "" : "none");
+class Loan {
+    constructor(bookId, memberId) {
+        this.id = crypto.randomUUID();
+        this.bookId = bookId;
+        this.memberId = memberId;
+        this.date = new Date().toISOString();
+        this.active = true;
+    }
 }
 
-document.querySelectorAll("[data-tab]").forEach(btn => {
-    btn.addEventListener("click", () => switchTab(btn.getAttribute("data-tab")));
-});
+const Library = {
+    KEY: "library-system-v1",
+    data: {
+        books: [],
+        members: [],
+        loans: []
+    },
 
-function addBook() {
-    const title = $("bTitle").value.trim();
-    const author = $("bAuthor").value.trim();
-    const isbn = $("bIsbn").value.trim();
-    const copies = Number($("bCopies").value);
+    load() {
+        const stored = localStorage.getItem(this.KEY);
+        if (stored) {
+            this.data = JSON.parse(stored);
+        }
+    },
 
-    if (!title) return msg($("bMsg"), "Title is required.", true);
-    if (!author) return msg($("bMsg"), "Author is required.", true);
-    if (!Number.isInteger(copies) || copies <= 0) return msg($("bMsg"), "Copies must be a positive integer.", true);
+    save() {
+        localStorage.setItem(this.KEY, JSON.stringify(this.data));
+        UI.renderAll();
+    },
 
-    state.books.push({
-        id: uid(), title, author, isbn,
-        copiesTotal: copies, copiesAvailable: copies
-    });
-    save(state);
-    $("bTitle").value = $("bAuthor").value = $("bIsbn").value = $("bCopies").value = "";
-    msg($("bMsg"), "Book added.", false);
-    render();
-}
+    addBook(title, author, isbn, copies) {
+        const book = new Book(title, author, copies, isbn);
+        this.data.books.unshift(book);
+        this.save();
+    },
 
-function addMember() {
-    const name = $("mName").value.trim();
-    const email = $("mEmail").value.trim();
-    if (!name) return msg($("mMsg"), "Name is required.", true);
+    removeBook(id) {
+        const hasActiveLoan = this.data.loans.some(l => l.bookId === id && l.active);
+        if (hasActiveLoan) return alert("Cannot delete: This book is currently borrowed.");
 
-    state.members.push({ id: uid(), name, email });
-    save(state);
-    $("mName").value = $("mEmail").value = "";
-    msg($("mMsg"), "Member added.", false);
-    render();
-}
+        if (!confirm("Delete this book?")) return;
+        this.data.books = this.data.books.filter(b => b.id !== id);
+        this.save();
+    },
 
-function borrow() {
-    const bookId = $("loanBook").value;
-    const memberId = $("loanMember").value;
+    addMember(name, email) {
+        const member = new Member(name, email);
+        this.data.members.unshift(member);
+        this.save();
+    },
 
-    const book = state.books.find(b => b.id === bookId);
-    const member = state.members.find(m => m.id === memberId);
+    removeMember(id) {
+        const hasActiveLoan = this.data.loans.some(l => l.memberId === id && l.active);
+        if (hasActiveLoan) return alert("Cannot delete: Member has unreturned books.");
 
-    if (!book) return msg($("lMsg"), "Select a book.", true);
-    if (!member) return msg($("lMsg"), "Select a member.", true);
-    if (book.copiesAvailable <= 0) return msg($("lMsg"), "No copies available.", true);
+        if (!confirm("Delete this member?")) return;
+        this.data.members = this.data.members.filter(m => m.id !== id);
+        this.save();
+    },
 
-    book.copiesAvailable -= 1;
-    state.loans.push({ id: uid(), bookId, memberId, borrowedAt: new Date().toISOString(), returnedAt: null });
-    save(state);
-    msg($("lMsg"), "Borrowed.", false);
-    render();
-}
+    borrowBook(bookId, memberId) {
+        const book = this.data.books.find(b => b.id === bookId);
 
-function returnLoan(loanId) {
-    const loan = state.loans.find(l => l.id === loanId);
-    if (!loan || loan.returnedAt) return;
+        if (!book) return alert("Book not found");
+        if ((book.total - book.borrowed) <= 0) return alert("No copies available");
 
-    const book = state.books.find(b => b.id === loan.bookId);
-    if (book) book.copiesAvailable += 1;
+        book.borrowed++;
+        const loan = new Loan(bookId, memberId);
+        this.data.loans.unshift(loan);
+        this.save();
+    },
 
-    loan.returnedAt = new Date().toISOString();
-    save(state);
-    render();
-}
+    returnBook(loanId) {
+        const loan = this.data.loans.find(l => l.id === loanId);
+        if (!loan || !loan.active) return;
 
-function delBook(id) {
-    // prevent deletion if active loans exist for this book
-    const hasActive = state.loans.some(l => l.bookId === id && !l.returnedAt);
-    if (hasActive) return msg($("bMsg"), "Cannot delete: book is currently loaned out.", true);
+        const book = this.data.books.find(b => b.id === loan.bookId);
+        if (book) book.borrowed--;
 
-    state.books = state.books.filter(b => b.id !== id);
-    save(state);
-    render();
-}
+        this.data.loans = this.data.loans.filter(l => l.id !== loanId);
+        this.save();
+    }
+};
 
-function delMember(id) {
-    const hasActive = state.loans.some(l => l.memberId === id && !l.returnedAt);
-    if (hasActive) return msg($("mMsg"), "Cannot delete: member has active loans.", true);
+const UI = {
+    els: {
+        tabs: document.querySelectorAll('[data-tab]'),
+        contents: {
+            books: document.getElementById('books'),
+            members: document.getElementById('members'),
+            loans: document.getElementById('loans')
+        },
+        bookRows: document.getElementById('bookRows'),
+        memberRows: document.getElementById('memberRows'),
+        loanRows: document.getElementById('loanRows'),
+        loanBookSelect: document.getElementById('loanBook'),
+        loanMemberSelect: document.getElementById('loanMember')
+    },
 
-    state.members = state.members.filter(m => m.id !== id);
-    save(state);
-    render();
-}
+    init() {
+        Library.load();
 
-function render() {
-    // Books table
-    const br = $("bookRows");
-    br.innerHTML = "";
-    state.books.forEach(b => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-      <td><strong>${escapeHtml(b.title)}</strong><div class="small">${escapeHtml(b.isbn || "")}</div></td>
-      <td>${escapeHtml(b.author)}</td>
-      <td><span class="badge">${b.copiesAvailable} / ${b.copiesTotal}</span></td>
-      <td><button class="btn danger" data-delbook="${b.id}">Delete</button></td>
-    `;
-        br.appendChild(tr);
-    });
-    br.querySelectorAll("[data-delbook]").forEach(btn => {
-        btn.addEventListener("click", () => delBook(btn.getAttribute("data-delbook")));
-    });
+        this.els.tabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.els.tabs.forEach(b => b.classList.remove('primary'));
+                Object.values(this.els.contents).forEach(div => div.style.display = 'none');
 
-    // Members table
-    const mr = $("memberRows");
-    mr.innerHTML = "";
-    state.members.forEach(m => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-      <td><strong>${escapeHtml(m.name)}</strong></td>
-      <td>${escapeHtml(m.email || "")}</td>
-      <td><button class="btn danger" data-delmember="${m.id}">Delete</button></td>
-    `;
-        mr.appendChild(tr);
-    });
-    mr.querySelectorAll("[data-delmember]").forEach(btn => {
-        btn.addEventListener("click", () => delMember(btn.getAttribute("data-delmember")));
-    });
+                btn.classList.add('primary');
+                const target = btn.dataset.tab;
+                this.els.contents[target].style.display = 'block';
 
-    // Borrow selects
-    $("loanBook").innerHTML = `<option value="">Select book</option>` + state.books
-        .map(b => `<option value="${b.id}">${escapeHtml(b.title)} (${b.copiesAvailable}/${b.copiesTotal})</option>`)
-        .join("");
+                if (target === 'loans') this.populateDropdowns();
+            });
+        });
 
-    $("loanMember").innerHTML = `<option value="">Select member</option>` + state.members
-        .map(m => `<option value="${m.id}">${escapeHtml(m.name)}</option>`)
-        .join("");
+        this.setupBooks();
+        this.setupMembers();
+        this.setupLoans();
 
-    // Loans table (active only)
-    const lr = $("loanRows");
-    lr.innerHTML = "";
-    state.loans.filter(l => !l.returnedAt).forEach(l => {
-        const book = state.books.find(b => b.id === l.bookId);
-        const member = state.members.find(m => m.id === l.memberId);
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-      <td>${escapeHtml(book?.title || "Unknown")}</td>
-      <td>${escapeHtml(member?.name || "Unknown")}</td>
-      <td>${new Date(l.borrowedAt).toLocaleString()}</td>
-      <td><button class="btn primary" data-return="${l.id}">Return</button></td>
-    `;
-        lr.appendChild(tr);
-    });
-    lr.querySelectorAll("[data-return]").forEach(btn => {
-        btn.addEventListener("click", () => returnLoan(btn.getAttribute("data-return")));
-    });
-}
+        this.renderAll();
+    },
 
-function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, (c) => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[c]));
-}
+    setupBooks() {
+        document.getElementById('addBook').addEventListener('click', () => {
+            const title = document.getElementById('bTitle').value;
+            const author = document.getElementById('bAuthor').value;
+            const isbn = document.getElementById('bIsbn').value;
+            const copies = document.getElementById('bCopies').value;
 
-$("addBook").addEventListener("click", addBook);
-$("addMember").addEventListener("click", addMember);
-$("borrow").addEventListener("click", borrow);
+            if (!title || !author || !copies) return alert("Title, Author and Copies are required");
 
-render();
+            Library.addBook(title, author, isbn, copies);
+
+            // Clear inputs
+            document.getElementById('bTitle').value = "";
+            document.getElementById('bAuthor').value = "";
+            document.getElementById('bIsbn').value = "";
+            document.getElementById('bCopies').value = "";
+        });
+    },
+
+    setupMembers() {
+        document.getElementById('addMember').addEventListener('click', () => {
+            const name = document.getElementById('mName').value;
+            const email = document.getElementById('mEmail').value;
+
+            if (!name) return alert("Name is required");
+
+            Library.addMember(name, email);
+            document.getElementById('mName').value = "";
+            document.getElementById('mEmail').value = "";
+        });
+    },
+
+    setupLoans() {
+        document.getElementById('borrow').addEventListener('click', () => {
+            const bookId = this.els.loanBookSelect.value;
+            const memberId = this.els.loanMemberSelect.value;
+
+            if (!bookId || !memberId) return alert("Select a book and a member");
+
+            Library.borrowBook(bookId, memberId);
+            this.populateDropdowns(); 
+        });
+    },
+
+    populateDropdowns() {
+        // Fill Book Select
+        this.els.loanBookSelect.innerHTML = '<option value="">-- Select Book --</option>';
+        Library.data.books.forEach(b => {
+            const avail = b.total - b.borrowed;
+            if (avail > 0) {
+                const opt = document.createElement('option');
+                opt.value = b.id;
+                opt.textContent = `${b.title} (${avail} left)`;
+                this.els.loanBookSelect.appendChild(opt);
+            }
+        });
+
+        this.els.loanMemberSelect.innerHTML = '<option value="">-- Select Member --</option>';
+        Library.data.members.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = m.name;
+            this.els.loanMemberSelect.appendChild(opt);
+        });
+    },
+
+    renderAll() {
+        this.renderBooks();
+        this.renderMembers();
+        this.renderLoans();
+    },
+
+    renderBooks() {
+        this.els.bookRows.innerHTML = Library.data.books.map(b => `
+            <tr>
+                <td><strong>${b.title}</strong><br><span class="small">${b.isbn}</span></td>
+                <td>${b.author}</td>
+                <td>
+                    <span class="badge" style="color:${(b.total - b.borrowed) > 0 ? 'var(--good)' : 'var(--bad)'}">
+                        ${b.total - b.borrowed} / ${b.total}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn small danger" onclick="Library.removeBook('${b.id}')">×</button>
+                </td>
+            </tr>
+        `).join("");
+    },
+
+    renderMembers() {
+        this.els.memberRows.innerHTML = Library.data.members.map(m => `
+            <tr>
+                <td><strong>${m.name}</strong></td>
+                <td>${m.email}</td>
+                <td>
+                    <button class="btn small danger" onclick="Library.removeMember('${m.id}')">×</button>
+                </td>
+            </tr>
+        `).join("");
+    },
+
+    renderLoans() {
+        this.els.loanRows.innerHTML = Library.data.loans.map(l => {
+            const book = Library.data.books.find(b => b.id === l.bookId) || { title: "Unknown Book" };
+            const member = Library.data.members.find(m => m.id === l.memberId) || { name: "Unknown Member" };
+
+            return `
+            <tr>
+                <td>${book.title}</td>
+                <td>${member.name}</td>
+                <td>${new Date(l.date).toLocaleDateString()}</td>
+                <td>
+                    <button class="btn small primary" onclick="Library.returnBook('${l.id}')">Return</button>
+                </td>
+            </tr>
+            `;
+        }).join("");
+    }
+};
+
+UI.init();

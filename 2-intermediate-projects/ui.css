@@ -45,7 +45,8 @@ body {
         radial-gradient(900px 600px at 15% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
         radial-gradient(900px 600px at 85% 100%, color-mix(in srgb, var(--good) 12%, transparent), transparent 60%),
         var(--bg);
-
+    background-attachment: fixed;
+    background-size: cover;
     min-height: 100svh;
     display: flex;
     flex-direction: column;

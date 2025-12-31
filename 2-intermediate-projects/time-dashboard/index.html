@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Dashboard</title>
+    <link rel="stylesheet" href="../ui.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        .digital-font {
+            font-family: 'Share Tech Mono', ui-monospace, monospace;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.06em;
+            line-height: 1;
+        }
+
+        #clock-display {
+            font-size: clamp(48px, 6vw, 80px);
+            color: var(--accent);
+            text-shadow:
+                0 0 6px color-mix(in srgb, var(--accent) 70%, transparent),
+                0 0 18px color-mix(in srgb, var(--accent) 40%, transparent);
+            margin-bottom: 8px;
+        }
+
+        #clock-date {
+            color: var(--muted);
+            font-size: 16px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        #timer-display {
+            font-size: clamp(48px, 6vw, 80px);
+            color: var(--text);
+            margin-bottom: 12px;
+            transition: color 0.3s ease, text-shadow 0.3s ease;
+        }
+
+        #timer-display.active {
+            color: var(--accent);
+            text-shadow:
+                0 0 6px color-mix(in srgb, var(--accent) 70%, transparent),
+                0 0 20px color-mix(in srgb, var(--accent) 30%, transparent);
+        }
+
+        .toggle-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: color-mix(in srgb, var(--panel) 50%, transparent);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            margin-top: 16px;
+        }
+
+        .card-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 300px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="app">
+
+            <header class="header">
+                <div>
+                    <h1 class="h1">Time Dashboard</h1>
+                    <p class="sub">Manage your time efficiently</p>
+                </div>
+                <div class="badge">v1.0.0</div>
+            </header>
+
+            <div class="grid">
+
+                <div class="card card-center">
+                    <div id="clock-display" class="digital-font">00:00:00</div>
+                    <div id="clock-date">LOADING DATE...</div>
+
+                    <div class="toggle-wrapper">
+                        <input id="clock-toggle" type="checkbox" checked style="width: auto; margin: 0;">
+                        <label for="clock-toggle" style="margin:0; cursor:pointer;">12-hour format</label>
+                    </div>
+                </div>
+
+                <div class="card card-center">
+                    <div id="timer-display" class="digital-font" aria-live="polite">00:00</div>
+                    <p class="small" style="margin-bottom: 20px;">Format: seconds, mm:ss, or hh:mm:ss</p>
+
+                    <div class="row" style="width: 100%; max-width: 320px; margin-bottom: 12px;">
+                        <input id="timer-input" type="text" placeholder="e.g. 5:00 or 90" style="text-align: center;">
+                    </div>
+
+                    <div class="row">
+                        <button id="timer-start" class="btn primary">Start</button>
+                        <button id="timer-pause" class="btn" disabled>Pause</button>
+                        <button id="timer-reset" class="btn danger" disabled>Reset</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

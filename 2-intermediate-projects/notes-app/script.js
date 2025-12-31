@@ -1,145 +1,192 @@
-const KEY = "notes.v1";
+const NotesApp = {
+  KEY: "notes-app-v1",
+  state: {
+    notes: [],
+    activeId: null,
+    debounceTimer: null
+  },
 
-const $ = (id) => document.getElementById(id);
-const listEl = $("list");
-const qEl = $("q");
-const titleEl = $("title");
-const bodyEl = $("body");
-const metaEl = $("meta");
-const countEl = $("count");
+  els: {
+    list: document.getElementById("list"),
+    q: document.getElementById("q"),
+    title: document.getElementById("title"),
+    body: document.getElementById("body"),
+    meta: document.getElementById("meta"),
+    count: document.getElementById("count"),
+    add: document.getElementById("add"),
+    del: document.getElementById("del"),
+    pin: document.getElementById("pin")
+  },
 
-const load = () => {
-  try { return JSON.parse(localStorage.getItem(KEY)) ?? []; }
-  catch { return []; }
-};
-const save = (notes) => localStorage.setItem(KEY, JSON.stringify(notes));
-const uid = () => crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2);
+  Storage: {
+    load() {
+      try { return JSON.parse(localStorage.getItem(NotesApp.KEY)) ?? []; }
+      catch { return []; }
+    },
+    save(notes) {
+      localStorage.setItem(NotesApp.KEY, JSON.stringify(notes));
+    }
+  },
 
-let notes = load();
-let selectedId = notes[0]?.id ?? null;
+  uid: () => crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2),
+  nowISO: () => new Date().toISOString(),
 
-function nowISO(){ return new Date().toISOString(); }
+  escapeHtml: (str) => {
+    return String(str || "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  },
 
-function createNote(){
-  const n = { id: uid(), title: "Untitled", body: "", pinned: false, updatedAt: nowISO() };
-  notes.unshift(n);
-  selectedId = n.id;
-  save(notes);
-  render();
-  titleEl.focus();
-}
+  actions: {
+    create() {
+      const newNote = {
+        id: NotesApp.uid(),
+        title: "",
+        body: "",
+        pinned: false,
+        updatedAt: NotesApp.nowISO()
+      };
+      NotesApp.state.notes.unshift(newNote);
+      NotesApp.state.activeId = newNote.id;
+      NotesApp.Storage.save(NotesApp.state.notes);
+      NotesApp.render.all();
+      NotesApp.els.title.focus();
+    },
 
-function deleteSelected(){
-  if (!selectedId) return;
-  notes = notes.filter(n => n.id !== selectedId);
-  selectedId = notes[0]?.id ?? null;
-  save(notes);
-  render();
-}
+    delete() {
+      if (!NotesApp.state.activeId) return;
+      if (!confirm("Delete this note?")) return;
 
-function togglePin(){
-  const n = notes.find(x => x.id === selectedId);
-  if (!n) return;
-  n.pinned = !n.pinned;
-  n.updatedAt = nowISO();
-  save(notes);
-  render();
-}
+      NotesApp.state.notes = NotesApp.state.notes.filter(n => n.id !== NotesApp.state.activeId);
+      NotesApp.state.activeId = NotesApp.state.notes[0]?.id ?? null;
+      NotesApp.Storage.save(NotesApp.state.notes);
+      NotesApp.render.all();
+    },
 
-function updateSelected(patch){
-  const n = notes.find(x => x.id === selectedId);
-  if (!n) return;
-  Object.assign(n, patch, { updatedAt: nowISO() });
-  save(notes);
-  renderList(); // keep editor cursor stable
-}
+    togglePin() {
+      const n = NotesApp.state.notes.find(x => x.id === NotesApp.state.activeId);
+      if (!n) return;
+      n.pinned = !n.pinned;
+      n.updatedAt = NotesApp.nowISO();
+      NotesApp.Storage.save(NotesApp.state.notes);
+      NotesApp.render.all();
+    },
 
-function formatTime(iso){
-  const d = new Date(iso);
-  return isNaN(d.getTime()) ? "" : d.toLocaleString();
-}
+    updateFromInput() {
+      const n = NotesApp.state.notes.find(x => x.id === NotesApp.state.activeId);
+      if (!n) return;
 
-function getVisibleNotes(){
-  const q = qEl.value.trim().toLowerCase();
-  let arr = [...notes];
+      n.title = NotesApp.els.title.value;
+      n.body = NotesApp.els.body.value;
+      n.updatedAt = NotesApp.nowISO();
 
-  // pinned first, then most recently updated
-  arr.sort((a,b) => (b.pinned - a.pinned) || (b.updatedAt.localeCompare(a.updatedAt)));
+      NotesApp.Storage.save(NotesApp.state.notes);
+      NotesApp.render.list();
+    }
+  },
 
-  if (!q) return arr;
-  return arr.filter(n =>
-    (n.title ?? "").toLowerCase().includes(q) ||
-    (n.body ?? "").toLowerCase().includes(q)
-  );
-}
+  render: {
+    all() {
+      this.list();
+      this.editor();
+    },
 
-function renderList(){
-  const visible = getVisibleNotes();
-  countEl.textContent = `${notes.length} notes`;
+    getVisible() {
+      const q = NotesApp.els.q.value.trim().toLowerCase();
+      let arr = [...NotesApp.state.notes];
 
-  listEl.innerHTML = "";
-  visible.forEach(n => {
-    const li = document.createElement("li");
-    li.style.cursor = "pointer";
-    li.style.borderColor = (n.id === selectedId) ? "color-mix(in srgb, var(--accent) 40%, var(--border))" : "";
-    li.innerHTML = `
-      <div class="row" style="justify-content:space-between;">
-        <strong>${(n.pinned ? "📌 " : "") + escapeHtml(n.title || "Untitled")}</strong>
-        <span class="small">${new Date(n.updatedAt).toLocaleDateString()}</span>
-      </div>
-      <div class="small" style="margin-top:6px;">
-        ${escapeHtml((n.body || "").slice(0, 70))}${(n.body || "").length > 70 ? "…" : ""}
-      </div>
-    `;
-    li.addEventListener("click", () => {
-      selectedId = n.id;
-      render();
+      arr.sort((a, b) => (b.pinned - a.pinned) || (b.updatedAt.localeCompare(a.updatedAt)));
+
+      if (!q) return arr;
+      return arr.filter(n =>
+        (n.title || "").toLowerCase().includes(q) ||
+        (n.body || "").toLowerCase().includes(q)
+      );
+    },
+
+    list() {
+      const visibleNotes = this.getVisible();
+      NotesApp.els.count.textContent = `${NotesApp.state.notes.length} notes`;
+      NotesApp.els.list.innerHTML = "";
+
+      visibleNotes.forEach(n => {
+        const li = document.createElement("li");
+        li.dataset.id = n.id;
+        li.className = (n.id === NotesApp.state.activeId) ? "active" : "";
+
+        if (n.id === NotesApp.state.activeId) {
+          li.style.borderColor = "color-mix(in srgb, var(--accent) 50%, transparent)";
+          li.style.backgroundColor = "color-mix(in srgb, var(--accent) 5%, transparent)";
+        }
+
+        li.innerHTML = `
+                    <div class="row" style="justify-content:space-between; pointer-events:none;">
+                        <strong>${n.pinned ? "📌 " : ""}${NotesApp.escapeHtml(n.title || "Untitled Note")}</strong>
+                        <span class="small">${new Date(n.updatedAt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="small" style="margin-top:6px; pointer-events:none; opacity:0.8;">
+                        ${NotesApp.escapeHtml((n.body || "").slice(0, 60))}...
+                    </div>
+                `;
+        NotesApp.els.list.appendChild(li);
+      });
+    },
+
+    editor() {
+      const n = NotesApp.state.notes.find(x => x.id === NotesApp.state.activeId);
+      const isDisabled = !n;
+
+      NotesApp.els.title.disabled = isDisabled;
+      NotesApp.els.body.disabled = isDisabled;
+      NotesApp.els.title.value = n?.title ?? "";
+      NotesApp.els.body.value = n?.body ?? "";
+
+      if (n) {
+        const dateStr = new Date(n.updatedAt).toLocaleString();
+        NotesApp.els.meta.textContent = `Last updated: ${dateStr} • ${n.pinned ? "Pinned" : "Not pinned"}`;
+        NotesApp.els.pin.textContent = n.pinned ? "Unpin" : "Pin";
+      } else {
+        NotesApp.els.meta.textContent = "Select or create a note to start writing.";
+        NotesApp.els.pin.textContent = "Pin";
+      }
+    }
+  },
+
+  init() {
+    this.state.notes = this.Storage.load();
+
+    if (this.state.notes.length > 0) {
+      this.state.activeId = this.state.notes[0].id;
+    } else {
+      this.actions.create();
+    }
+
+    this.els.add.addEventListener("click", this.actions.create);
+    this.els.del.addEventListener("click", this.actions.delete);
+    this.els.pin.addEventListener("click", this.actions.togglePin);
+    this.els.q.addEventListener("input", () => this.render.list());
+
+    const handleType = () => {
+      clearTimeout(this.state.debounceTimer);
+      this.state.debounceTimer = setTimeout(this.actions.updateFromInput, 300);
+    };
+    this.els.title.addEventListener("input", handleType);
+    this.els.body.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        this.actions.create();
+      }
     });
-    listEl.appendChild(li);
-  });
-}
+    this.els.list.addEventListener("click", (e) => {
+      const li = e.target.closest("li");
+      if (li && li.dataset.id) {
+        this.state.activeId = li.dataset.id;
+        this.render.all();
+      }
+    });
 
-function renderEditor(){
-  const n = notes.find(x => x.id === selectedId);
-  const disabled = !n;
+    this.render.all();
+  }
+};
 
-  titleEl.disabled = disabled;
-  bodyEl.disabled = disabled;
-
-  titleEl.value = n?.title ?? "";
-  bodyEl.value = n?.body ?? "";
-
-  metaEl.textContent = n ? `Last updated: ${formatTime(n.updatedAt)} • ${n.pinned ? "Pinned" : "Not pinned"}` : "No note selected";
-}
-
-function render(){
-  renderList();
-  renderEditor();
-}
-
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, (c) => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[c]));
-}
-
-// Debounced autosave on typing
-let t = null;
-function scheduleUpdate(){
-  clearTimeout(t);
-  t = setTimeout(() => {
-    if (!selectedId) return;
-    updateSelected({ title: titleEl.value, body: bodyEl.value });
-  }, 180);
-}
-
-$("add").addEventListener("click", createNote);
-$("del").addEventListener("click", deleteSelected);
-$("pin").addEventListener("click", togglePin);
-qEl.addEventListener("input", renderList);
-
-titleEl.addEventListener("input", scheduleUpdate);
-bodyEl.addEventListener("input", scheduleUpdate);
-
-if (!selectedId && notes.length === 0) createNote();
-else render();
+NotesApp.init();
