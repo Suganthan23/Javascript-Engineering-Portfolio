@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Board</title>
+    <link rel="stylesheet" href="../../ui.css">
+    <style>
+        body {
+            overflow-y: hidden;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            height: calc(100vh - 140px);
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+
+        .column {
+            background: color-mix(in srgb, var(--panel) 50%, transparent);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            max-height: 100%;
+        }
+
+        .column-header {
+            padding: 16px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .count-badge {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .task-list {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            transition: background 0.2s;
+        }
+
+        .task-list.drag-over {
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+        }
+
+        .task {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: grab;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .task:active {
+            cursor: grabbing;
+        }
+
+        .task.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+            border: 1px dashed var(--accent);
+        }
+
+        .col-todo {
+            border-top: 4px solid var(--accent);
+        }
+
+        .col-doing {
+            border-top: 4px solid var(--warn);
+        }
+
+        .col-done {
+            border-top: 4px solid var(--good);
+        }
+
+        @media (max-width: 768px) {
+            .board {
+                grid-template-columns: 1fr;
+                overflow-y: auto;
+                height: auto;
+            }
+
+            body {
+                overflow-y: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" style="max-width: 1200px;">
+        <div class="header">
+            <div>
+                <h1 class="h1">Kanban Board</h1>
+                <p class="sub">Drag and drop tasks. Click text to edit.</p>
+            </div>
+            <button id="add-btn" class="btn primary">+ New Task</button>
+        </div>
+
+        <div class="board">
+
+            <div class="column col-todo">
+                <div class="column-header">
+                    <span>To Do</span>
+                    <span id="count-todo" class="count-badge">0</span>
+                </div>
+                <div class="task-list" id="todo" data-status="todo">
+                </div>
+            </div>
+
+            <div class="column col-doing">
+                <div class="column-header">
+                    <span>In Progress</span>
+                    <span id="count-doing" class="count-badge">0</span>
+                </div>
+                <div class="task-list" id="doing" data-status="doing">
+                </div>
+            </div>
+
+            <div class="column col-done">
+                <div class="column-header">
+                    <span>Done</span>
+                    <span id="count-done" class="count-badge">0</span>
+                </div>
+                <div class="task-list" id="done" data-status="done">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
