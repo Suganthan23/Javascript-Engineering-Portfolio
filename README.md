@@ -1,4 +1,4 @@
-# ⚡ JavaScript Engineering Core
+# ⚡ JavaScript Engineering Portfolio
 
 A technical portfolio demonstrating the progression from functional algorithms to scalable, asynchronous frontend applications using modern **Vanilla JS** patterns.
 
