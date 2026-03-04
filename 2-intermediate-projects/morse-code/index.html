@@ -6,31 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morse Translator</title>
     <link rel="stylesheet" href="../../ui.css">
-    <style>
-        .output-card {
-            background: color-mix(in srgb, var(--accent) 8%, var(--card));
-            border-color: color-mix(in srgb, var(--accent) 20%, transparent);
-            min-height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .morse-text {
-            font-family: monospace;
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--accent);
-            letter-spacing: 0.1em;
-            word-break: break-all;
-        }
-
-        .playing {
-            box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent);
-            border-color: var(--accent);
-        }
-    </style>
+    <link rel="stylesheet" href="./app.css">
 </head>
 
 <body>
@@ -43,6 +19,9 @@
                     <p class="sub">Text to Audio translation</p>
                 </div>
                 <div class="badge">v2.0</div>
+                <button id="theme-toggle" class="theme-switch" aria-label="Toggle theme">
+                    <span class="switch-icon"></span>
+                </button>
             </div>
 
             <div class="grid" style="grid-template-columns: 1fr; gap: 20px;">
@@ -77,6 +56,7 @@
         </div>
     </div>
 
+    <script src="../../theme.js"></script>
     <script src="script.js"></script>
 </body>
 

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>JavaScript Engineering Portfolio | Suganthan S</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="ui.css" />
+</head>
+
+<body class="js-portfolio-page">
+    <div class="js-portfolio-shell">
+        <header class="js-topbar">
+            <a class="js-topbar-gh" href="https://github.com/Suganthan23" target="_blank" rel="noopener"
+                aria-label="Open GitHub profile">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="currentColor"
+                        d="M12 .5C5.73.5.75 5.6.75 12c0 5.15 3.44 9.52 8.2 11.06.6.12.82-.27.82-.58v-2.1c-3.34.74-4.04-1.67-4.04-1.67-.55-1.42-1.34-1.8-1.34-1.8-1.1-.77.08-.76.08-.76 1.22.09 1.86 1.28 1.86 1.28 1.08 1.9 2.84 1.35 3.53 1.03.11-.8.42-1.35.76-1.66-2.67-.31-5.47-1.37-5.47-6.08 0-1.34.46-2.43 1.22-3.29-.12-.31-.53-1.57.12-3.27 0 0 1-.33 3.3 1.26.96-.28 1.98-.42 3-.42s2.04.14 3 .42c2.3-1.59 3.3-1.26 3.3-1.26.65 1.7.24 2.96.12 3.27.76.86 1.22 1.95 1.22 3.29 0 4.72-2.8 5.76-5.48 6.07.43.38.82 1.14.82 2.3v3.41c0 .32.22.7.83.58 4.75-1.54 8.18-5.9 8.18-11.06C23.25 5.6 18.27.5 12 .5z" />
+                </svg>
+                <span class="sr-only">GitHub</span>
+            </a>
+
+            <div class="js-topbar-name">SUGANTHAN S</div>
+
+            <button id="theme-toggle" class="theme-switch" aria-label="Toggle theme">
+                <span class="switch-icon"></span>
+            </button>
+        </header>
+
+        <section class="js-hero">
+            <h1 class="js-hero-title">JavaScript Engineering Portfolio</h1>
+            <p class="js-hero-subtitle">
+                A collection of vanilla JavaScript projects exploring DOM, state management, async flows, and real‑world
+                UI patterns.
+            </p>
+
+            <a class="js-hero-link" href="https://github.com/Suganthan23/Javascript-Engineering-Portfolio"
+                target="_blank" rel="noopener">
+                View Repo →
+            </a>
+        </section>
+
+        <main class="js-portfolio-main">
+
+            <section class="js-section">
+                <h2>Intermediate Projects</h2>
+                <div class="js-grid">
+                    <article class="js-card">
+                        <h3>Library System</h3>
+                        <p>Manage books, members, and loans with localStorage persistence and tabbed navigation.</p>
+                        <a href="2-intermediate-projects/library-system/index.html" class="js-card-link">Open project
+                            →</a>
+                    </article>
+
+                    <article class="js-card">
+                        <h3>Expense Tracker</h3>
+                        <p>Track income and expenses with category filters and running balance.</p>
+                        <a href="2-intermediate-projects/expense-tracker/index.html" class="js-card-link">Open project
+                            →</a>
+                    </article>
+
+                    <article class="js-card">
+                        <h3>Morse Code Translator</h3>
+                        <p>Translate text to Morse code and vice versa with real‑time input handling.</p>
+                        <a href="2-intermediate-projects/morse-code/index.html" class="js-card-link">Open
+                            project →</a>
+                    </article>
+
+                    <article class="js-card">
+                        <h3>Notes App</h3>
+                        <p>Simple notes app with local storage persistence and markdown support.</p>
+                        <a href="2-intermediate-projects/notes-app/index.html" class="js-card-link">Open project →</a>
+                    </article>
+
+                    <article class="js-card">
+                        <h3>Time Dashboard</h3>
+                        <p>Time Dashboard – Live digital clock with 12/24‑hour toggle and a flexible countdown timer
+                            (seconds, mm:ss, hh:mm:ss), built to practise time parsing, interval timers, and DOM
+                            updates.</p>
+                        <a href="2-intermediate-projects/time-dashboard/index.html" class="js-card-link">Open project →</a>
+                    </article>
+
+                </div>
+            </section>
+
+            <section class="js-section">
+                <h2>Advanced Projects</h2>
+                <div class="js-grid">
+                    <article class="js-card">
+                        <h3>GitHub Fetcher</h3>
+                        <p>Fetches GitHub user profiles and repos via the public API to practise async/await and error
+                            handling.</p>
+                        <a href="3-advanced-projects/github-fetcher/index.html" class="js-card-link">Open project →</a>
+                    </article>
+
+                    <article class="js-card">
+                        <h3>Infinite Gallery</h3>
+                        <p>Image gallery with infinite scroll and lazy loading for performance.</p>
+                        <a href="3-advanced-projects/infinite-gallery/index.html" class="js-card-link">Open project
+                            →</a>
+                    </article>
+
+                    <article class="js-card">
+                        <h3>Kanban Fetcher</h3>
+                        <p>Kanban‑style board that loads and organizes data into draggable columns.</p>
+                        <a href="3-advanced-projects/kanban-fetcher/index.html" class="js-card-link">Open project →</a>
+                    </article>
+                </div>
+            </section>
+        </main>
+
+        <footer class="js-portfolio-footer">
+            <span>JavaScript Engineering Portfolio • Suganthan S</span>
+        </footer>
+    </div>
+</body>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        body.classList.add(savedTheme);
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        if (body.classList.contains('dark-mode')) {
+            body.classList.remove('dark-mode');
+            body.classList.add('light-mode');
+            localStorage.setItem('theme', 'light-mode');
+        } else {
+            body.classList.remove('light-mode');
+            body.classList.add('dark-mode');
+            localStorage.setItem('theme', 'dark-mode');
+        }
+    });
+</script>
+
+</html>

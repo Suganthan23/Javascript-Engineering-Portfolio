@@ -1,11 +1,14 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Notes App</title>
   <link rel="stylesheet" href="../../ui.css">
+  <link rel="stylesheet" href="./app.css">
 </head>
+
 <body>
   <div class="container">
     <div class="app">
@@ -19,29 +22,41 @@
           <button class="btn primary" id="add">New note</button>
           <button class="btn danger" id="del">Delete</button>
         </div>
+        <button id="theme-toggle" class="theme-switch" aria-label="Toggle theme">
+          <span class="switch-icon"></span>
+        </button>
       </div>
 
-      <div class="grid" style="grid-template-columns: 320px 1fr;">
+      <div class="grid">
         <div class="card">
           <div class="row" style="justify-content:space-between;">
             <span class="badge" id="count">0 notes</span>
             <button class="btn" id="pin">Pin</button>
           </div>
-          <ul class="list" id="list" style="margin-top:10px;"></ul>
+          <ul class="list notes-list" id="list"></ul>
         </div>
 
         <div class="card">
           <label for="title">Title</label>
           <input id="title" placeholder="Untitled">
+
           <div style="height:10px;"></div>
+
           <label for="body">Body</label>
           <textarea id="body" placeholder="Write your note..."></textarea>
-          <p class="small" id="meta" style="margin:10px 0 0;"></p>
+
+          <div class="row notes-actions-row">
+            <button class="btn primary" id="add-below">Add note</button>
+          </div>
+
+          <p class="small" id="meta"></p>
         </div>
       </div>
     </div>
   </div>
 
+  <script src="../../theme.js" defer></script>
   <script src="./script.js" defer></script>
 </body>
+
 </html>

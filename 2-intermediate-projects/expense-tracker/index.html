@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Expense Tracker</title>
     <link rel="stylesheet" href="../../ui.css">
+    <link rel="stylesheet" href="./app.css">
 </head>
 
 <body>
@@ -20,6 +21,9 @@
                     <button class="btn" id="export">Export</button>
                     <input type="file" id="import" accept="application/json" style="max-width: 220px;">
                 </div>
+                <button id="theme-toggle" class="theme-switch" aria-label="Toggle theme">
+                    <span class="switch-icon"></span>
+                </button>
             </div>
 
             <div class="kpi">
@@ -104,6 +108,7 @@
         </div>
     </div>
 
+    <script src="../../theme.js" defer></script>
     <script src="./script.js" defer></script>
 </body>
 

@@ -1,0 +1,86 @@
+:root {
+    --black: #ce306a;
+    --white: #fff4d6;
+}
+
+.gallery {
+    column-count: 3;
+    column-gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .gallery {
+        column-count: 2;
+    }
+}
+
+@media (max-width: 600px) {
+    .gallery {
+        column-count: 1;
+    }
+}
+
+.img-card {
+    break-inside: avoid;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-canvas);
+    border: 1px solid var(--text-on-canvas);
+    transition: transform 0.2s;
+}
+
+.img-card:hover {
+    transform: scale(1.02);
+}
+
+.img-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.5s ease-in;
+}
+
+.img-card img.loaded {
+    opacity: 1;
+}
+
+.overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+    padding: 20px 15px 15px;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.img-card:hover .overlay {
+    opacity: 1;
+}
+
+.sentinel {
+    height: 100px;
+    text-align: center;
+    padding: 20px;
+}
+
+.loader {
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--text-on-canvas);
+    border-top-color: var(--bg-block);
+    border-radius: 50%;
+    animation: spin 1s infinite linear;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}

@@ -6,66 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Time Dashboard</title>
     <link rel="stylesheet" href="../../ui.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
-        .digital-font {
-            font-family: 'Share Tech Mono', ui-monospace, monospace;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: 0.06em;
-            line-height: 1;
-        }
-
-        #clock-display {
-            font-size: clamp(48px, 6vw, 80px);
-            color: var(--accent);
-            text-shadow:
-                0 0 6px color-mix(in srgb, var(--accent) 70%, transparent),
-                0 0 18px color-mix(in srgb, var(--accent) 40%, transparent);
-            margin-bottom: 8px;
-        }
-
-        #clock-date {
-            color: var(--muted);
-            font-size: 16px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        #timer-display {
-            font-size: clamp(48px, 6vw, 80px);
-            color: var(--text);
-            margin-bottom: 12px;
-            transition: color 0.3s ease, text-shadow 0.3s ease;
-        }
-
-        #timer-display.active {
-            color: var(--accent);
-            text-shadow:
-                0 0 6px color-mix(in srgb, var(--accent) 70%, transparent),
-                0 0 20px color-mix(in srgb, var(--accent) 30%, transparent);
-        }
-
-        .toggle-wrapper {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 16px;
-            background: color-mix(in srgb, var(--panel) 50%, transparent);
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            margin-top: 16px;
-        }
-
-        .card-center {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            min-height: 300px;
-        }
-    </style>
+    <link rel="stylesheet" href="./app.css">
 </head>
 
 <body>
@@ -79,6 +20,9 @@
                     <p class="sub">Manage your time efficiently</p>
                 </div>
                 <div class="badge">v1.0.0</div>
+                <button id="theme-toggle" class="theme-switch" aria-label="Toggle theme">
+                    <span class="switch-icon"></span>
+                </button>
             </header>
 
             <div class="grid">
@@ -112,7 +56,8 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="../../theme.js" defer></script>
+    <script src="script.js" defer></script>
 </body>
 
 </html>

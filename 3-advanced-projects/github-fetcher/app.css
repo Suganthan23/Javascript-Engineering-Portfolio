@@ -1,0 +1,101 @@
+:root {
+    --black: #1e40af;
+    --white: #fef08a;
+}
+
+.avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid var(--bg-canvas);
+    object-fit: cover;
+}
+
+.stat-box {
+    background: var(--bg-canvas);
+    padding: 10px;
+    border: 1px solid var(--text-on-canvas);
+    text-align: center;
+}
+
+.stat-val {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-on-canvas);
+}
+
+.stat-label {
+    font-size: 12px;
+    opacity: 0.8;
+    text-transform: uppercase;
+}
+
+.repo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.repo-card {
+    background: var(--bg-block);
+    color: var(--text-on-block);
+    border: 1px solid var(--text-on-block);
+    padding: 14px;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.repo-card:hover {
+    background: var(--bg-canvas);
+    color: var(--text-on-canvas);
+    border-color: var(--text-on-canvas);
+    transform: translateY(-2px);
+}
+
+.repo-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.repo-meta span {
+    border: 1px solid currentColor;
+    padding: 2px 6px;
+}
+
+.search-area {
+    position: relative;
+    max-width: 500px;
+    margin: 0 auto 30px;
+}
+
+.search-area input {
+    padding: 14px 18px;
+    font-size: 16px;
+}
+
+.loader {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--text-on-canvas);
+    border-top-color: var(--bg-block);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 40px auto;
+    display: none;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#error.card {
+    text-align: center;
+    color: #dc2626;
+    border-color: #dc2626;
+}

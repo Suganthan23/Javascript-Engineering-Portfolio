@@ -1,0 +1,85 @@
+:root {
+    --black: #1f2937;
+    --white: #14b8a6;
+}
+
+.header {
+    align-items: center;
+}
+
+.header .row {
+    gap: 10px;
+    align-items: center;
+}
+
+#mode {
+    width: 220px;
+    min-width: 220px;
+}
+
+.card {
+    padding: 16px;
+}
+
+.card textarea {
+    min-height: 190px;
+    line-height: 1.5;
+}
+
+.output-card {
+    background: var(--bg-canvas);
+    color: var(--text-on-canvas);
+    border-color: var(--text-on-canvas);
+}
+
+#output,
+.morse-text {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    letter-spacing: 0.12em;
+    font-size: 24px;
+    font-weight: 800;
+    word-break: break-word;
+    color: var(--text-on-canvas);
+}
+
+.playing {
+    outline: 2px solid var(--text-on-canvas);
+    outline-offset: 2px;
+}
+
+textarea[readonly] {
+    background: var(--bg-canvas);
+    color: var(--text-on-canvas);
+    border-color: var(--text-on-canvas);
+    cursor: default;
+    opacity: 0.95;
+}
+
+code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.95em;
+    padding: 2px 6px;
+    border-radius: 0;
+    border: 1px solid var(--text-on-canvas);
+    background: var(--bg-canvas);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#btn-toggle-dict {
+    color: var(--text-on-canvas);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+#dict-grid>* {
+    border: 1px solid var(--text-on-block);
+    background: var(--bg-block);
+    color: var(--text-on-block);
+    padding: 10px 8px;
+    text-align: center;
+    box-shadow: 4px 4px 0 var(--text-on-block);
+}

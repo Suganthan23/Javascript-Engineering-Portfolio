@@ -2,7 +2,7 @@ const GithubAPI = {
     BASE_URL: "https://api.github.com/users",
 
     async getUser(username) {
-        const response = await fetch(`${this.BASE_URL}/${username}`);
+        const response = await fetch(`${this.BASE_URL}/${encodeURIComponent(username)}`);
 
         if (response.status === 404) throw new Error("User not found");
         if (!response.ok) throw new Error("Network error");
@@ -11,7 +11,9 @@ const GithubAPI = {
     },
 
     async getRepos(username) {
-        const response = await fetch(`${this.BASE_URL}/${username}/repos?sort=updated&per_page=10`);
+        const response = await fetch(
+            `${this.BASE_URL}/${encodeURIComponent(username)}/repos?sort=updated&per_page=10`
+        );
 
         if (!response.ok) throw new Error("Could not fetch repos");
 
@@ -35,17 +37,36 @@ const UI = {
         repoList: document.getElementById("repos")
     },
 
+    escape(str) {
+        return String(str || "").replace(/[&<>"']/g, (c) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[c]));
+    },
+
     showLoader() {
         this.els.loader.style.display = "block";
         this.els.profile.style.display = "none";
         this.els.error.style.display = "none";
     },
 
+    resetView() {
+        this.els.profile.style.display = "none";
+        this.els.error.style.display = "none";
+        this.els.loader.style.display = "none";
+        this.els.repoList.innerHTML = "";
+    },
+
     showProfile(user) {
         this.els.loader.style.display = "none";
         this.els.profile.style.display = "block";
+        this.els.error.style.display = "none";
 
         this.els.avatar.src = user.avatar_url;
+        this.els.avatar.alt = `${user.login} avatar`;
         this.els.name.textContent = user.name || user.login;
         this.els.bio.textContent = user.bio || "No bio available";
         this.els.reposCount.textContent = user.public_repos;
@@ -55,26 +76,42 @@ const UI = {
     },
 
     showRepos(repos) {
-        this.els.repoList.innerHTML = repos.map(repo => `
-            <div class="repo-card">
-                <a href="${repo.html_url}" target="_blank" style="text-decoration:none; color:inherit;">
-                    <strong style="color:var(--accent); font-size:16px;">${repo.name}</strong>
-                    <p style="font-size:13px; color:var(--muted); margin: 6px 0;">${repo.description || "No description"}</p>
-                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:10px;">
-                        <span>⭐ ${repo.stargazers_count}</span>
-                        <span>🍴 ${repo.forks_count}</span>
-                        <span>${repo.language || "Plain"}</span>
-                    </div>
-                </a>
-            </div>
-        `).join("");
+        if (!Array.isArray(repos) || repos.length === 0) {
+            this.els.repoList.innerHTML = `<p class="small">No public repositories found.</p>`;
+            return;
+        }
+
+        this.els.repoList.innerHTML = repos
+            .map((repo) => {
+                const name = this.escape(repo.name);
+                const desc = repo.description ? this.escape(repo.description) : "No description";
+                const language = repo.language || "Plain";
+                const updated = new Date(repo.updated_at).toLocaleDateString();
+
+                return `
+          <article class="repo-card">
+            <a href="${repo.html_url}" target="_blank" rel="noopener"
+               style="text-decoration:none; color:inherit;">
+              <strong style="font-size:16px;">${name}</strong>
+              <p class="small" style="margin:6px 0 8px;">${desc}</p>
+              <div class="repo-meta">
+                <span>★ ${repo.stargazers_count}</span>
+                <span>🍴 ${repo.forks_count}</span>
+                <span>${language}</span>
+                <span>Updated: ${updated}</span>
+              </div>
+            </a>
+          </article>
+        `;
+            })
+            .join("");
     },
 
     showError(msg) {
         this.els.loader.style.display = "none";
         this.els.profile.style.display = "none";
         this.els.error.style.display = "block";
-        this.els.error.innerHTML = `<h3 style="margin:0;">${msg}</h3>`;
+        this.els.error.innerHTML = `<h3 style="margin:0;">${this.escape(msg)}</h3>`;
     }
 };
 
@@ -106,8 +143,7 @@ const App = {
             clearTimeout(this.timeout);
 
             if (!query) {
-                UI.els.profile.style.display = "none";
-                UI.els.error.style.display = "none";
+                UI.resetView();
                 return;
             }
 

@@ -1,0 +1,22 @@
+:root{
+  --black: #7c2d12; 
+  --white: #ffedd5; 
+}
+
+.header .btn[data-tab]{
+  background: transparent;
+  color: var(--text-on-block);
+  border-color: var(--text-on-block);
+}
+
+.header .btn.primary[data-tab]{
+  background: var(--bg-canvas);
+  color: var(--text-on-canvas);
+  border-color: var(--text-on-canvas);
+}
+
+.header .btn[data-tab]:hover{
+  background: var(--bg-canvas);
+  color: var(--text-on-canvas);
+  border-color: var(--text-on-canvas);
+}

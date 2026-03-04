@@ -4,11 +4,13 @@ const TaskManager = {
 
     load() {
         const stored = localStorage.getItem(this.KEY);
-        this.tasks = stored ? JSON.parse(stored) : [
-            { id: "t1", content: "Learn JavaScript", status: "todo" },
-            { id: "t2", content: "Build Kanban Board", status: "doing" },
-            { id: "t3", content: "Master CSS Grid", status: "done" }
-        ];
+        this.tasks = stored
+            ? JSON.parse(stored)
+            : [
+                { id: "t1", content: "Learn JavaScript", status: "todo" },
+                { id: "t2", content: "Build Kanban Board", status: "doing" },
+                { id: "t3", content: "Master CSS Grid", status: "done" }
+            ];
     },
 
     save() {
@@ -20,7 +22,7 @@ const TaskManager = {
         const newTask = {
             id: Date.now().toString(),
             content: content,
-            status: "todo" 
+            status: "todo"
         };
         this.tasks.push(newTask);
         this.save();
@@ -28,23 +30,23 @@ const TaskManager = {
 
     delete(id) {
         if (!confirm("Delete this task?")) return;
-        this.tasks = this.tasks.filter(t => t.id !== id);
+        this.tasks = this.tasks.filter((t) => t.id !== id);
         this.save();
     },
 
     updateStatus(id, newStatus) {
-        const task = this.tasks.find(t => t.id === id);
-        if (task) {
+        const task = this.tasks.find((t) => t.id === id);
+        if (task && task.status !== newStatus) {
             task.status = newStatus;
             this.save();
         }
     },
 
     updateContent(id, newContent) {
-        const task = this.tasks.find(t => t.id === id);
+        const task = this.tasks.find((t) => t.id === id);
         if (task) {
             task.content = newContent;
-            this.save(); 
+            this.save();
         }
     }
 };
@@ -54,26 +56,30 @@ const DragManager = {
 
     init() {
         document.addEventListener("dragstart", (e) => {
-            if (e.target.classList.contains("task")) {
-                this.draggedId = e.target.dataset.id;
-                e.target.classList.add("dragging");
-                e.dataTransfer.effectAllowed = "move";
-            }
+            const taskEl = e.target.closest(".task");
+            if (!taskEl) return;
+
+            this.draggedId = taskEl.dataset.id;
+            taskEl.classList.add("dragging");
+            e.dataTransfer.effectAllowed = "move";
         });
 
         document.addEventListener("dragend", (e) => {
-            if (e.target.classList.contains("task")) {
-                e.target.classList.remove("dragging");
-                document.querySelectorAll(".task-list").forEach(el => el.classList.remove("drag-over"));
-                this.draggedId = null;
-            }
+            const taskEl = e.target.closest(".task");
+            if (!taskEl) return;
+
+            taskEl.classList.remove("dragging");
+            document
+                .querySelectorAll(".task-list")
+                .forEach((el) => el.classList.remove("drag-over"));
+            this.draggedId = null;
         });
 
         const columns = document.querySelectorAll(".task-list");
 
-        columns.forEach(col => {
+        columns.forEach((col) => {
             col.addEventListener("dragover", (e) => {
-                e.preventDefault(); 
+                e.preventDefault();
                 col.classList.add("drag-over");
             });
 
@@ -106,23 +112,52 @@ const UIManager = {
         done: document.getElementById("count-done")
     },
 
-    render() {
-        Object.values(this.cols).forEach(col => col.innerHTML = "");
+    escape(str) {
+        return String(str || "").replace(/[&<>"']/g, (c) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[c]));
+    },
 
-        TaskManager.tasks.forEach(task => {
+    render() {
+        Object.values(this.cols).forEach((col) => (col.innerHTML = ""));
+
+        TaskManager.tasks.forEach((task) => {
             const card = document.createElement("div");
             card.className = "task";
             card.draggable = true;
             card.dataset.id = task.id;
 
-            card.innerHTML = `
-                <div contenteditable="true" class="editable" onblur="UIManager.handleEdit(this, '${task.id}')">
-                    ${task.content}
-                </div>
-                <button class="btn small danger" style="margin-top:8px; padding: 2px 6px; font-size:10px;" onclick="TaskManager.delete('${task.id}')">
-                    Delete
-                </button>
-            `;
+            const content = document.createElement("div");
+            content.className = "editable";
+            content.contentEditable = "true";
+            content.textContent = task.content;
+
+            const delBtn = document.createElement("button");
+            delBtn.className = "btn small danger";
+            delBtn.style.marginTop = "8px";
+            delBtn.style.padding = "2px 6px";
+            delBtn.style.fontSize = "10px";
+            delBtn.textContent = "Delete";
+
+            content.addEventListener("blur", () => {
+                const newText = content.innerText.trim();
+                if (newText) {
+                    TaskManager.updateContent(task.id, newText);
+                } else {
+                    this.render();
+                }
+            });
+
+            delBtn.addEventListener("click", () => {
+                TaskManager.delete(task.id);
+            });
+
+            card.appendChild(content);
+            card.appendChild(delBtn);
 
             this.cols[task.status].appendChild(card);
         });
@@ -131,18 +166,15 @@ const UIManager = {
     },
 
     updateCounts() {
-        this.counts.todo.textContent = TaskManager.tasks.filter(t => t.status === "todo").length;
-        this.counts.doing.textContent = TaskManager.tasks.filter(t => t.status === "doing").length;
-        this.counts.done.textContent = TaskManager.tasks.filter(t => t.status === "done").length;
-    },
-
-    handleEdit(el, id) {
-        const newText = el.innerText.trim();
-        if (newText) {
-            TaskManager.updateContent(id, newText);
-        } else {
-            UIManager.render();
-        }
+        this.counts.todo.textContent = TaskManager.tasks.filter(
+            (t) => t.status === "todo"
+        ).length;
+        this.counts.doing.textContent = TaskManager.tasks.filter(
+            (t) => t.status === "doing"
+        ).length;
+        this.counts.done.textContent = TaskManager.tasks.filter(
+            (t) => t.status === "done"
+        ).length;
     },
 
     init() {
@@ -152,7 +184,7 @@ const UIManager = {
 
         document.getElementById("add-btn").addEventListener("click", () => {
             const text = prompt("Enter task details:");
-            if (text) TaskManager.add(text);
+            if (text && text.trim()) TaskManager.add(text.trim());
         });
     }
 };
