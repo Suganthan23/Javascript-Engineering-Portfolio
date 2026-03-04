@@ -1,5 +1,7 @@
 # ⚡ JavaScript Engineering Portfolio
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20Portfolio-%232A4161?style=for-the-badge)](https://suganthan23.github.io/Javascript-Engineering-Portfolio/)
+
 A technical portfolio demonstrating the progression from functional algorithms to scalable, asynchronous frontend applications using modern **Vanilla JS** patterns.
 
 ## 📂 System Architecture
@@ -42,14 +44,14 @@ A technical portfolio demonstrating the progression from functional algorithms t
 ---
 
 ## 🛠 Technical Stack
-*   **Core:** Vanilla JavaScript (ES6+), semantic HTML5.
-*   **Styling:** CSS Variables, Flexbox, CSS Grid (No external frameworks).
-*   **Key Patterns:**
-    *   **Async/Await** for non-blocking operations.
-    *   **Service-based Architecture** (Separating Data Fetching from UI).
-    *   **Observer Pattern** (Intersection Observer).
-    *   **Module Pattern** for scope isolation.
+* **Core:** Vanilla JavaScript (ES6+), semantic HTML5.
+* **Styling:** CSS Variables, Flexbox, CSS Grid (No external frameworks).
+* **Key Patterns:**
+  * **Async/Await** for non-blocking operations.
+  * **Service-based Architecture** (Separating Data Fetching from UI).
+  * **Observer Pattern** (Intersection Observer).
+  * **Module Pattern** for scope isolation.
 
 ## 🚀 Execution
-1.  Clone the repository.
-2.  Serve the root or specific folder using **Live Server** (VS Code).
+1. Clone the repository.
+2. Serve the root or specific folder using **Live Server** (VS Code).
